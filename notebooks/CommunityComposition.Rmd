@@ -1,0 +1,139 @@
+---
+title: "Community Composition"
+output: html_notebook
+---
+# Overview
+* Qualitative analysis of community composition in rhizosphere and bulk samples
+* Compositional changes in time
+* Compositional changes between genotypes
+
+
+```{r}
+library(RColorBrewer)
+library(phyloseq)
+library(ggplot2)
+library(foreach)
+library(doParallel)
+library(gridExtra)
+library(dplyr)
+library(tidyr)
+library(reshape2)
+```
+
+```{r}
+PhyloseqFile = '/home/bryan/PennRhiz/data/run1/phyloseq/buckleylab_pipeline/PennRhiz_snorm.rds'
+
+physeq = readRDS(PhyloseqFile)
+physeq
+```
+
+
+```{r}
+mdf = psmelt(physeq)
+
+#generate data frame of core plants aggregated at the phylum level 
+Rank2.df = mdf %>% 
+    filter(!TimePoint %in% c("T0", "T2") & Genotype %in% c("BARE", "B73xB97", "B73xTx303", 
+                                               "SORSUD", "ECHES", "HELAN")) %>%
+    group_by(TimePoint, Planted, Rank2) %>%
+    summarize(s.Abundance = sum(Abundance))
+
+head(mdf)
+head(Rank2.df)
+
+#goal is to calculate relative abundance 
+  # cast by Rank2
+  R2.c = dcast(Rank2.df, TimePoint + Planted ~ Rank2)
+
+  #Calculate relative abundance using 
+  R2.c[,3:27] = sweep(R2.c[,3:27], 1, rowSums(R2.c[,3:27]), '/')
+
+R2.m = melt(R2.c, id.vars = c("TimePoint", "Planted"))
+  
+
+colourCount = length(unique(R2.m$Rank2))
+getPalette = colorRampPalette(brewer.pal(9, "Set1"))
+
+ggplot(R2.m, aes(x = Planted, y = value, fill=variable)) + 
+    geom_bar(stat = "identity")+
+    scale_fill_manual(values = getPalette(colourCount))+
+    facet_wrap(~TimePoint) 
+```
+
+
+```{r}
+
+mdf = psmelt(physeq)
+
+#generate data frame of core plants aggregated at the phylum level 
+Rank4.df = mdf %>% 
+    filter(!TimePoint %in% c("T0", "T2") & Genotype %in% c("BARE", "B73xB97", "B73xTx303", 
+                                               "SORSUD", "ECHES", "HELAN")) %>%
+    group_by(TimePoint, Planted, Rank4) %>%
+    summarize(s.Abundance = sum(Abundance))
+
+head(mdf)
+head(Rank4.df)
+
+#goal is to calculate relative abundance 
+  # cast by Rank2
+  R4.c = dcast(Rank4.df, TimePoint + Planted ~ Rank4)
+
+  #Calculate relative abundance using 
+  R4.c[,3:111] = sweep(R4.c[,3:111], 1, rowSums(R4.c[,3:111]), '/')
+
+R4.m = melt(R4.c, id.vars = c("TimePoint", "Planted")) %>%
+          filter(value > 0.02)
+R4.m$variable = droplevels(R4.m$variable)
+  
+
+colourCount = length(unique(R5.m$variable))
+getPalette = colorRampPalette(brewer.pal(9, "Set1"))
+
+ggplot(R4.m, aes(x = Planted, y = value, fill=variable)) + 
+    geom_bar(stat = "identity")+
+    scale_fill_manual(values = getPalette(colourCount))+
+    facet_wrap(~TimePoint) 
+```
+
+
+
+```{r, fig.height=8, fig.width = 7}
+mdf = psmelt(physeq)
+
+#generate data frame of core plants aggregated at the phylum level 
+Rank4.df = mdf %>% 
+    filter(!TimePoint %in% c("T0", "T2") & Genotype %in% c("BARE", "B73xB97", "B73xTx303", 
+                                               "SORSUD", "ECHES", "HELAN", "FAGES")) %>%
+    group_by(TimePoint, Species, Rank4) %>%
+    summarize(s.Abundance = sum(Abundance))
+
+head(mdf)
+head(Rank4.df)
+
+#goal is to calculate relative abundance 
+  # cast by Rank2
+  R4.c = dcast(Rank4.df, TimePoint + Species ~ Rank4)
+
+  #Calculate relative abundance using 
+  R4.c[,3:111] = sweep(R4.c[,3:111], 1, rowSums(R4.c[,3:111]), '/')
+
+R4.m = melt(R4.c, id.vars = c("TimePoint", "Species")) %>%
+          filter(value > 0.02)
+R4.m$variable = droplevels(R4.m$variable)
+  
+R4.m$Species = factor(R4.m$Species, levels = c("BARE", "Maize", 
+                                               "SORSUD", "ECHES", "HELAN", "FAGES"))
+unique(Rank4.df$Species)
+colourCount = length(unique(R4.m$variable))
+getPalette = colorRampPalette(brewer.pal(9, "Set1"))
+
+ggplot(R4.m, aes(x = Species, y = value, fill=variable)) + 
+    geom_bar(stat = "identity")+
+    theme(axis.text.x = element_text(angle = 90)) +
+    scale_fill_manual(values = getPalette(colourCount))+
+    facet_wrap(~TimePoint, ncol = 1) 
+```
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Cmd+Shift+K* to preview the HTML file).
