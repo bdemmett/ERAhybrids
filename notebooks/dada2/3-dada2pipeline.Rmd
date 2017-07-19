@@ -1,5 +1,5 @@
 ---
-title: "R Notebook"
+title: "ERA Dada2 Pipeline"
 output:
   html_document: default
   html_notebook: default
@@ -7,7 +7,7 @@ output:
 
 
 
-# Dada2 sequence pipeline for Penn Rhizosphere 
+# Dada2 sequence pipeline for ERA Rhizosphere 
 # Quality Control and Sequence Binning with DADA2 Multithreading Pipeline
 * study, v4 Bacteria, library1, run 1
 * Following Spencer's blog walkthrough https://spencerjd.github.io/DADA2-Walkthrough/
@@ -20,7 +20,7 @@ library(dada2)
 ### load file names
 
 ```{r}
-path = "/home/bryan/PennRhiz/data/run1/v4bac_lib1_demult/"
+path = "/home/bryan/ERA/data/MiSeq/20170417_run1/v4bac_lib1_demult/"
 fns = list.files(path)
 
 fastqs = fns[grepl(".fq.gz$", fns)]
@@ -43,8 +43,9 @@ plotQualityProfile(fnFs[[6]])
 
 ```{r}
 # Plot quality profile for each sample. Change the number in brackets to look at a different sample's profile.
-plotQualityProfile(fnFs[[7]])
+plotQualityProfile(fnRs[[6]])
 ```
+
 ```{r}
 filtFs = paste0(path, sample_names, "_F_filt.fastq.gz")
 filtRs = paste0(path, sample_names, "_R_filt.fastq.gz")
@@ -53,7 +54,7 @@ if(length(fnFs) != length(fnRs)) stop("Forward and reverse files do not match.")
 # Filtering: THESE PARAMETERS ARENT OPTIMAL FOR ALL DATASETS. Trim sequences based on quality profile from raw fastq files. 
 for(i in seq_along(fnFs)) {
   fastqPairedFilter(c(fnFs[i], fnRs[i]), c(filtFs[i], filtRs[i]),
-                    trimLeft=c(10, 10), truncLen=c(140,160), 
+                    trimLeft=c(10, 5), truncLen=c(155,125), 
                     maxN=0, maxEE=2, truncQ=2, 
                     compress=TRUE, verbose=TRUE)
 }
@@ -104,7 +105,7 @@ rm(derepF); rm(derepR)
 # Construct sequence table and remove chimeras
 seqtab <- makeSequenceTable(mergers)
 no.chimera <- removeBimeraDenovo(seqtab, multithread=TRUE)
-saveRDS(no.chimera, "/home/bryan/PennRhiz/data/run1/v4bac_lib1_demult/lib1_seqtab.rds") 
+saveRDS(no.chimera, "/home/bryan/ERA/data/MiSeq/20170417_run1/v4bac_lib1_demult/lib1_seqtab.rds") 
 ```
 
 # Checkpoint, possible to read file an continue from here
@@ -129,10 +130,15 @@ rownames(taxa) <- otu.df$otu.names
 # Create phyloseq object
 ```{r}
 library(phyloseq)
-sample_data = import_qiime_sample_data("/home/bryan/PennRhiz/data/run1/Penn_v4bac_lib1_mappingfile.txt")
+sample_data = import_qiime_sample_data("/home/bryan/ERA/ERA_MappingFile.txt")
 
 ps <- phyloseq(otu_table(otu.seqtab, taxa_are_rows=FALSE), 
                sample_data(sample_data), 
                tax_table(taxa))
+saveRDS(ps, file = "/home/bryan/ERA/data/MiSeq/20170417_run1/v4bac_lib1_demult/ERA_physeq.rds")
+```
+
+```{r}
 ps
 ```
+
