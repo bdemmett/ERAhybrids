@@ -51,7 +51,7 @@ g_legend<-function(a.gplot){
 
 ```{r, echo = FALSE, results = "hide"}
 # Data wrangling
-# Server version: # Tbl1 = read.csv("/home/bryan/ERA/Master.csv", header = TRUE)
+
 
 Tbl1 = read.csv("/home/bryan/ERA/Master.csv", header = TRUE)
 
@@ -62,11 +62,12 @@ Tbl1$PlotIndex = as.factor(Tbl1$PlotIndex)
 Tbl1$ERA = as.factor(Tbl1$ERA)
 
 
+Tbl1$Plant %>% unique()
 #Primary plants (no untreated, no high/low density)
-Data = Tbl1 %>% filter(SeedTreatment == "Treated" & !Plant %in% c("322U", "330-High", "330-Low", "3475U", "354U", "34N42U", "P1151HR-High", "P1151HR-Low"))
+Data = Tbl1 %>% filter(SeedTreatment == "Treated" & !Plant %in% c("1939-High", "1939-Low", "2011-High", "2011-Low"))
 
 # Table for seed treatment comparisons
-Data.sc = Tbl1 %>% filter(Plant %in% c("322U", "3475U", "354U", "34N42U", "322", "3475", "354", "34N42"))
+Data.sc = Tbl1 %>% filter(Plant %in% c("1936", "1936U", "1984","1984U", "1953", "1953U", "2003", "2003U"))
 
 Data$Plant = droplevels(Data$Plant)
 
@@ -82,7 +83,8 @@ Data.sc = Data.sc %>%
   mutate(Plant = reorder(Plant,R_Year),
          Genotype = reorder(Genotype, R_Year)) 
 
-Data$Plant %>% unique
+Data$Plant %>% unique()
+Data$R_Year.c = Data$R_Year - 1935
 
 ```
 
@@ -756,7 +758,7 @@ p = ggplot(tmp, aes(x = R_Year, y = PreAnthesisN, shape = Fert))+
     scale_shape_manual(values = c(21,21,22))+
     theme_pub() +
     xlab("Year of release")+
-    ylab("Pre-anthesis N uptake \n (kg N/ha)") +
+    ylab("Pre-anthesis N uptake (kg N/ha)") +
     geom_errorbar(aes(ymin = PreAnthesisN - PreAnthesisN.se, ymax = PreAnthesisN + PreAnthesisN.se), width = 1)+
     scale_fill_manual(values = c("white", "black", "white")) +
     geom_smooth(aes(linetype = Fert), method = "lm", se = FALSE, color = "black") +
@@ -771,14 +773,14 @@ p1 = ggplot(tmp, aes(x = R_Year, y = PostAnthesisN, shape = Fert))+
     scale_shape_manual(values = c(21,21,22))+
     theme_pub() +
     xlab("Year of release")+
-    ylab("Post-anthesis N uptake \n (kg N/ha)") +
+    ylab("Post-anthesis N uptake (kg N/ha)") +
   ylim(-20,135) +
     geom_errorbar(aes(ymin = PostAnthesisN - PostAnthesisN.se, ymax = PostAnthesisN + PostAnthesisN.se), width = 1)+
     scale_fill_manual(values = c("white", "black", "white")) +
     geom_smooth(aes(linetype = Fert), method = "lm", se = FALSE, color = "black") +
     scale_linetype_manual(values = c(3,1,5)) +
     geom_point(aes(fill = Fert), size = 2) +
-    theme(legend.position = "right", axis.title.x = element_blank())
+    theme(legend.position = "right", axis.title.x = element_blank(), legend.key.width = unit(2.5,"line"))
     #facet_wrap(~Fert, ncol =1, scales = "free_y")
 
 p2 = ggplot(tmp, aes(x = R_Year, y = NutilE, shape = Fert))+
@@ -786,7 +788,7 @@ p2 = ggplot(tmp, aes(x = R_Year, y = NutilE, shape = Fert))+
     scale_shape_manual(values = c(21,21,22))+
     theme_pub() +
     xlab("Year of release")+
-    ylab("NUtE\n(kg grain/kg plant N)") +
+    ylab("NUtE (kg grain/kg plant N)") +
     geom_errorbar(aes(ymin = NutilE - NutilE.se, ymax = NutilE + NutilE.se), width = 1)+
     scale_fill_manual(values = c("white", "black", "white")) +
     geom_smooth(aes(linetype = Fert), method = "lm", se = FALSE, color = "black") +
@@ -814,7 +816,7 @@ p4 = ggplot(tmp, aes(x = R_Year, y = HIdw, shape = Fert))+
     scale_shape_manual(values = c(21,21,22))+
     theme_pub() +
     xlab("Year of release")+
-    ylab("Harvest index\n (kg grain/kg plant") +
+    ylab("Harvest index (kg grain/kg plant") +
     geom_errorbar(aes(ymin = HIdw - HIdw.se, ymax = HIdw + HIdw.se), width = 1)+
     scale_fill_manual(values = c("white", "black", "white")) +
     geom_smooth(aes(linetype = Fert), method = "lm", se = FALSE, color = "black") +
@@ -828,7 +830,7 @@ p5 = ggplot(tmp, aes(x = R_Year, y = HIN, shape = Fert))+
     scale_shape_manual(values = c(21,21,22))+
     theme_pub() +
     xlab("Year of release")+
-    ylab("N harvest index\n(kg grain N/kg plant N)") +
+    ylab("N harvest index (kg grain N/kg plant N)") +
     geom_errorbar(aes(ymin = HIN - HIN.se, ymax = HIN + HIN.se), width = 1)+
     scale_fill_manual(values = c("white", "black", "white")) +
     geom_smooth(aes(linetype = Fert), method = "lm", se = FALSE, color = "black") +
@@ -842,7 +844,7 @@ p6 = ggplot(tmp, aes(x = R_Year, y = GrainN, shape = Fert))+
     scale_shape_manual(values = c(21,21,22))+
     theme_pub() +
     xlab("Year of release")+
-    ylab("Grain N export\n(kg N/ha)") +
+    ylab("Grain N export (kg N/ha)") +
     geom_errorbar(aes(ymin = GrainN - GrainN.se, ymax = GrainN + GrainN.se), width = 1)+
     scale_fill_manual(values = c("white", "black", "white")) +
     geom_smooth(aes(linetype = Fert), method = "lm", se = FALSE, color = "black") +
@@ -855,7 +857,7 @@ p7 = ggplot(tmp, aes(x = R_Year, y = StoverN, shape = Fert))+
     scale_shape_manual(values = c(21,21,22))+
     theme_pub() +
     xlab("Year of release")+
-    ylab("Stover N\n(kg N/ha)") +
+    ylab("Stover N (kg N/ha)") +
     geom_errorbar(aes(ymin = StoverN - StoverN.se, ymax = StoverN + StoverN.se), width = 1)+
     scale_fill_manual(values = c("white", "black", "white")) +
     geom_smooth(aes(linetype = Fert), method = "lm", se = FALSE, color = "black") +
@@ -869,11 +871,16 @@ p1 = p1 + theme(legend.position = "none")
 
 RightRow = plot_grid(p,p1,p2, p3,p4,p5,p6,p7, ncol = 2, align = "vh")
           
-grid.arrange(RightRow, Fertlegend2, ncol = 2, widths = c(1,.1))
+grid.arrange(RightRow, Fertlegend2, ncol = 2, widths = c(1,.2))
 ```
 
 
 
+```{r}
+svg(filename = '/home/bryan/ERA/data/figures/ms_versions/NUE_supplemental.svg', width = 6.5, height = 7.5)
+grid.arrange(RightRow, Fertlegend2, ncol = 2, widths = c(1,.2))
+dev.off()
+```
 
 
 ```{r}
@@ -929,27 +936,31 @@ m2 = lmer(FertN_difference  ~  R_Year.c*Fert + (1|Rep) + (1|Pos) + (1|Pos:Fert) 
 
 ## compare apparent RE with 15n based RE
 ```{r, fig.height = 3, fig.width = 4}
-# sub = tmp %>% mutate(FertilizerN = as.numeric(as.character(Fert)),
-#            RE_15N = Total_kgFertN_ha/FertilizerN,
-#            Fert = factor(Fert)) %>%
-#           filter(Fert != "0")
-head(sub)
+
 pComp = ggplot(tmp, aes(x = FertN_difference, y = Total_kgFertN_ha, shape = Fert)) +
-  geom_point(aes(fill = Fert)) +
   geom_smooth(aes(linetype = Fert), method = "lm", se = FALSE, color = "black") +
    scale_shape_manual(values = c(21,22))+
+  geom_point(aes(fill = Fert), size = 2) +
     theme_pub() +
-   xlab("Difference esimate (kg N/ha )")+
+   xlab("Difference esimate (kg N/ha)")+
   ylab("15N tracer estimate (kg N/ha)") +
-   xlim(c(0,110))+
+   #xlim(c(0,110))+
   ylim(c(0,110))+
   scale_fill_manual(values = c("black", "white")) +
     geom_abline(intercept = 0, linetype = 3) +
-    scale_linetype_manual(values = c(1,5))
+    scale_linetype_manual(values = c(1,5))+
+  theme(legend.position = "bottom", legend.key.width = unit(2.5,"line"))
 
 pComp
 
 ```
+
+```{r}
+svg(filename = '/home/bryan/ERA/data/figures/ms_versions/TracerVsDif.svg', width = 3.14, height = 3.5)
+pComp %>% print
+dev.off()
+```
+
 
 
 # Output of F-tests
@@ -1020,7 +1031,7 @@ m1 = lmer(Grain_kgdw_ha ~  Fert*SeedTreatment +  Genotype*SeedTreatment + Fert:G
 ```{r, echo = FALSE, fig.height = 2.5, fig.width = 7}
 library(RColorBrewer)
 TreatmentColors = brewer.pal(3, 'Dark2')
-
+require(cowplot)
 tmp = Data.sc %>%
     mutate(R_Year.f = factor(R_Year)) %>%
     group_by(R_Year.f, Fert, SeedTreatment) %>%
@@ -1040,7 +1051,7 @@ p1 = ggplot(subset(tmp, Fert == "85"), aes(x = R_Year.f, y = T2_N, fill = SeedTr
   ylim(0,150)+
   ylab("N uptake at R1 (kg N/ha)")+
   scale_fill_manual(values = TreatmentColors)+
-  theme(axis.text.x = element_text(angle= 60),  axis.title.x = element_blank())+
+  theme(axis.text.x = element_text(angle= 60, hjust = 1, vjust = 1),  axis.title.x = element_blank())+
    geom_errorbar(aes(ymin = T2_N - T2_N.se, ymax = T2_N+T2_N.se), 
                           colour = "Black", position = dodge, width = .4)+
   facet_wrap(~Fert)
@@ -1057,7 +1068,7 @@ p3 = ggplot(tmp, aes(x = R_Year.f, y = FinalN, fill = SeedTreatment)) +
   ylim(0,150)+
   scale_fill_manual(values = TreatmentColors)+
   ylab("N uptake at PM (kg N/ha)")+
-  theme(legend.position = "none", axis.text.x = element_text(angle= 60), 
+  theme(legend.position = "none", axis.text.x = element_text(angle= 60, hjust =1, vjust = 1), 
         axis.title.x = element_blank())+
    geom_errorbar(aes(ymin = FinalN - FinalN.se, ymax = FinalN + FinalN.se), 
                  colour = "Black", position = dodge, width = .9) + 
@@ -1073,85 +1084,18 @@ p4 = ggplot(tmp, aes(x = R_Year.f, y = FinalYield, fill = SeedTreatment)) +
 grid.arrange(p1, p3, ncol = 2, widths = c(.85,1))
 ```
 
+
+```{r}
+svg(filename = '/home/bryan/ERA/data/figures/ms_versions/SeedTreatment_growth.svg', width = 6.5, height = 3.15)
+grid.arrange(p1, p3, ncol = 2, widths = c(.84,1))
+dev.off()
+
+```
+
 * No effect of seed treatment on plant growth and N uptake
 
 
-
-# Exploratory
-
-* Additionally there is wide variation in plant growth and N uptake, likely related to spatial variability in field drainage.  Here I check whether early season biomass accumulation can be used as a covariate to improve estimates of release year and fertilizer by adding dry weight at V6 to a model predicting N uptake
-
 ```{r}
-m3 = lmer(Final_kgN_ha ~ T1_kgdw_ha + R_Year.c*Fert + (1|Rep) + (1|Genotype) + (1|Rep:Row:Pos),  data = Data, na.action = na.exclude)
-  anova(m3, ddf = "Kenward-Roger")
-
-```
-
-### Plot ls means to visualize difference
-*note that we need to use model with R_Year as a factor in order to calculate lsmeans for each genotype
-```{r}
-
-m3 = lmer(Final_kgN_ha ~ T1_kgdw_ha + as.factor(R_Year.c)*Fert + (1|Rep)  + (1|Rep:Row:Pos),  data = Data, na.action = na.exclude)
-  anova(m3, ddf = "Kenward-Roger")
-
-
-  Yield.cld = lsmeans(m3, pairwise~R_Year.c|Fert) %>%
-        cld(Letters = c(letters))  %>% 
-        as.data.frame %>% 
-         filter(!is.na(lsmean)) 
- 
- p =   ggplot(Yield.cld, aes(x = R_Year.c, y = lsmean, color = Fert)) +
-    geom_point() +
-  theme_pub()+ 
-   
-     stat_smooth(method = "lm", se = FALSE)+
-     geom_errorbar(aes(ymin = lower.CL, ymax = upper.CL), 
-                         colour = "Black")
- 
- grid.arrange(p, p1, ncol = 2)
-
-```
-* Including biomass at T1 in model does not improve lsmean estimation nor Fstatistic of R_Year.c
-
-
-* Here I am trying to get a handle on spatial variation and how the ERA hybrids respond, plotting biomass at V6 vs Final biomass, split by fertilization level.  Here the shapes are hybrids of different ERAs 1 = pre-fertilizer (1930s -50), 2 = increasing fertilizer use (50s-80s) and 3 = high but stable use (90s - present day).  For a given level of early season growth, the modern hybrids show greater biomass accumulation by the end of the season.  This may be an indication they they were more stress tolerant during the saturated early season.  This would also explain why there was greater N uptake from soil.  Since N uptake will be dependent on plant size, differences in plant growth following prolonged saturated soils could lead to differences in N uptake.   
-
-
-```{r, echo = FALSE}
-
-p2 = ggplot(Data, aes(x = T1_kgdw_ha, y = Stover_kgdw_ha + Grain_kgdw_ha, shape = ERA))+
-    
-    geom_point(color = "black", size = 2) +
-    scale_shape_manual(values = c(0,19,2))+
-    theme_pub() +
-    xlab("Biomass at V6 (kg/ha)")+
-    ylab("Final biomass") +
-    #scale_color_manual(values = FertColors) +
-    geom_smooth(aes(linetype = ERA), method = "lm", se = FALSE, color = "black") +
-    scale_linetype_manual(values = c(3,1,5))+
-    facet_wrap(~Fert)
-p2
-
-
-#grid.arrange(p2, p3, ncol = 1)
-```
-
-Here I am trying to understand the relationship between biomass and N uptake.  There is a very strong relationship.  It also appears that the modern hybrids are shifted right on the x-axis in high fertility plots indicating greater biomass accumulation per unit N uptake:  
-
-```{r, echo = FALSE}
-
-p2 = ggplot(Data, aes(x = Stover_kgdw_ha + Grain_kgdw_ha, y = Final_kgN_ha, shape = ERA))+
-    
-    geom_point(color = "black", size = 2) +
-    scale_shape_manual(values = c(0,19,2))+
-    theme_pub() +
-    xlab("FinalBiomass")+
-    ylab("Final N uptake") +
-    #scale_color_manual(values = FertColors) +
-    geom_smooth(aes(linetype = ERA), method = "lm", se = FALSE, color = "black") +
-    scale_linetype_manual(values = c(3,1,5))+
-    facet_wrap(~Fert, scales = "free_x")
-p2
-
+sessionInfo()
 ```
 

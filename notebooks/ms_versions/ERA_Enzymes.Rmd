@@ -1,0 +1,271 @@
+---
+title: "ERA enzyme analysis"
+output: html_notebook
+---
+
+
+
+```{r, echo = FALSE, warning = FALSE}
+library(ggplot2)
+library(tidyr)
+library(gridExtra)
+library(reshape2)
+library(lme4)
+library(lmerTest)
+library(lsmeans)
+library(RColorBrewer)
+library(dplyr)
+```
+
+```{r, echo= FALSE}
+# theme function
+theme_pub = function (base_size = 11, base_family = "Helvetica") {
+    theme_grey(base_size = base_size, base_family = base_family) %+replace% 
+        theme(
+            axis.line.x = element_line(size = .5),
+            axis.line.y = element_line(size = .5),
+            panel.background = element_rect(fill = "white", colour = NA), 
+            panel.border = element_rect(fill = NA, color = "black", size = .5), 
+            panel.grid.major = element_blank(), 
+            panel.grid.minor = element_blank(), 
+            strip.background = element_rect(fill = "grey85", 
+                colour = "grey20"), 
+            legend.key = element_rect(fill = "white", 
+                colour = NA), complete = TRUE)
+}
+# Color palette
+FertColors =  c("red", "green", "blue")
+
+```
+
+
+```{r, echo = FALSE, results = "hide"}
+# Data wrangling
+# Server version: # Tbl1 = read.csv("/home/bryan/ERA/Master.csv", header = TRUE)
+
+Tbl1 = read.csv("/home/bryan/ERA/MasterLong.csv", header = TRUE)
+
+Tbl1$Rep = as.factor(Tbl1$Rep)
+Tbl1$Row = as.factor(Tbl1$Row)
+Tbl1$Fert = as.factor(Tbl1$Fert)
+Tbl1$PlotIndex = as.factor(Tbl1$PlotIndex)
+Tbl1$ERA = as.factor(Tbl1$ERA)
+Tbl1$Genotype = as.factor(Tbl1$Genotype)
+
+
+
+#Primary plants (no untreated, no high/low density)
+#Primary plants (no untreated, no high/low density)
+Data = Tbl1 %>% filter(SeedTreatment == "Treated" & !Plant %in% c("1939-High", "1939-Low", "2011-High", "2011-Low") | Plant == "Bare")
+
+# Table for seed treatment comparisons
+Data.sc = Tbl1 %>% filter(Plant %in% c("1936", "1936U", "1984","1984U", "1953", "1953U", "2003", "2003U")) %>% 
+  filter(Fert == "85")
+
+Data.sc$Plant = droplevels(Data.sc$Plant)
+Data.sc$Genotype = droplevels(Data.sc$Genotype)
+
+
+Data$Plant = droplevels(Data$Plant)
+
+
+# set plant levels by year
+Data = Data %>%
+                   # sort  dataframe
+  mutate(Plant = reorder(Plant,R_Year),
+         Genotype = reorder(Genotype, R_Year)) # reset your factor-column based on that order
+
+Data.sc = Data.sc %>%
+                   # sort  dataframe
+  mutate(Plant = reorder(Plant,R_Year),
+         Genotype = reorder(Genotype, R_Year)) # reset your factor-column based on that order
+
+Data$Plant %>% unique
+
+```
+```{r, echo = FALSE}
+require(cowplot)
+```
+
+
+# Enzyme analysis 
+## Global enzyme anovas on time series core
+
+Determine the relative influence of rhizosphere effect and time point on enzyme activity
+* Subset to just bare soil and six core genotypes 
+x 3 timepoints
+x 4 reps 
+= 
+
+```{r, echo = FALSE}
+
+# for core use just 85kgN, 
+#be sure to run cell above to define data.long
+Data.c = Data %>% filter(Plant %in% c("Bare", "1939", "1953", "1971", "1984", "2001", "2011") & Fert == "85" & !is.na(BG_activity.g))
+
+
+Data.c$Plant = factor(Data.c$Plant, levels = c("Bare", "1939", "1953", "1971", "1984", "2001", "2011"))
+
+Data.c = mutate(Data.c, Planted = ifelse(Plant == "Bare", "Bare", "Planted"))
+        
+
+```
+
+Enzymes activity varied with data of sampling and the rhizosphere effect.  For LAP, a protease, there was a significant interaction between time of sampling and the rhizosphere effect. A rhizosphere effect was evident at the first sampling, but not at later dates
+
+```{r}
+
+# List = c("BG_activity.g", "BX_activity.g", "CB_activity.g", "LAP_activity.g", "NAG_activity.g")
+# for (i in List) {
+# m1 = lmer(log(get(i))~TimePoint*Planted + (1|Rep)  + (1|Rep:Row:Pos),  data = Data.c, na.action = na.exclude)
+#   print(paste(i))
+#   anova(m1, ddf = "Kenward-Roger") %>% print
+#   plot(m1, title = paste(i)) %>% print
+# }
+# 
+
+mBG = lmer(log(BG_activity.g)~TimePoint*Planted + (1|Rep) + (1|Genotype) + (1|Rep:Row:Pos),  data = Data.c, na.action = na.exclude)
+  print("BG")
+  anova(mBG, ddf = "Kenward-Roger") %>% print
+  plot(mBG) %>% print
+
+
+mBX = lmer(log(BX_activity.g)~TimePoint*Planted + (1|Rep) + (1|Genotype) + (1|Rep:Row:Pos),  data = Data.c, na.action = na.exclude)
+print("BX")
+  anova(mBX, ddf = "Kenward-Roger") %>% print
+  plot(mBX) %>% print
+  
+mCB = lmer(log(CB_activity.g)~TimePoint*Planted + (1|Rep) + (1|Genotype) + (1|Rep:Row:Pos),  data = Data.c, na.action = na.exclude)
+  print("CB")
+  anova(mCB, ddf = "Kenward-Roger") %>% print
+  plot(mCB) %>% print
+
+mLAP= lmer(log(LAP_activity.g)~TimePoint*Planted + (1|Rep) + (1|Genotype) + (1|Rep:Row:Pos),  data = Data.c, na.action = na.exclude)
+  print("LAP")
+  anova(mLAP, ddf = "Kenward-Roger") %>% print
+  plot(mLAP) %>% print
+  
+mNAG= lmer(log(NAG_activity.g)~TimePoint*Planted + (1|Rep) + (1|Genotype) + (1|Rep:Row:Pos),  data = Data.c, na.action = na.exclude)
+  print("NAG")
+  anova(mNAG, ddf = "Kenward-Roger") %>% print
+  plot(mNAG) %>% print
+
+```
+
+
+## Plot core group rhizosphere effect through time
+### Generate lsmeans 
+```{r}
+ BGcld.df = lsmeans(mBG, pairwise~Planted|TimePoint) %>%
+        cld(Letters = c(letters))  %>% 
+        as.data.frame %>% 
+        filter(!is.na(lsmean)) %>%# required to drop unused ranks
+        mutate(lsmean = exp(lsmean),
+                                lower.CL = exp(lower.CL),
+                                upper.CL = exp(upper.CL),
+                                se = exp(SE),
+                                # .group = ifelse(Fert == "Nneg", as.character(.group),
+                                #                 toupper(.group)),
+                                enzyme = "BG") 
+
+ BXcld.df = lsmeans(mBX, pairwise~Planted|TimePoint) %>%
+        cld(Letters = c(letters))  %>% 
+        as.data.frame %>% 
+        filter(!is.na(lsmean)) %>%# required to drop unused ranks
+        mutate(lsmean = exp(lsmean),
+                                lower.CL = exp(lower.CL),
+                                upper.CL = exp(upper.CL),
+                                se = exp(SE),
+                                # .group = ifelse(Fert == "Nneg", as.character(.group),
+                                #                 toupper(.group)),
+                                enzyme = "BX") 
+ 
+ CBcld.df = lsmeans(mCB, pairwise~Planted|TimePoint) %>%
+        cld(Letters = c(letters))  %>% 
+        as.data.frame %>% 
+        filter(!is.na(lsmean)) %>%# required to drop unused ranks
+        mutate(lsmean = exp(lsmean),
+                                lower.CL = exp(lower.CL),
+                                upper.CL = exp(upper.CL),
+                                se = exp(SE),
+                                # .group = ifelse(Fert == "Nneg", as.character(.group),
+                                #                 toupper(.group)),
+                                enzyme = "CB") 
+  
+   LAPcld.df = lsmeans(mLAP, pairwise~Planted|TimePoint) %>%
+        cld(Letters = c(letters))  %>% 
+        as.data.frame %>% 
+        filter(!is.na(lsmean)) %>%# required to drop unused ranks
+        mutate(lsmean = exp(lsmean),
+                                lower.CL = exp(lower.CL),
+                                upper.CL = exp(upper.CL),
+                                se = exp(SE),
+                                # .group = ifelse(Fert == "Nneg", as.character(.group),
+                                #                 toupper(.group)),
+                                enzyme = "LAP") 
+   
+
+   
+   NAGcld.df = lsmeans(mNAG, pairwise~Planted|TimePoint) %>%
+        cld(Letters = c(letters))  %>% 
+        as.data.frame %>% 
+        filter(!is.na(lsmean)) %>%# required to drop unused ranks
+        mutate(lsmean = exp(lsmean),
+                                lower.CL = exp(lower.CL),
+                                upper.CL = exp(upper.CL),
+                                se = exp(SE),
+                                # .group = ifelse(Fert == "Nneg", as.character(.group),
+                                #                 toupper(.group)),
+                                enzyme = "NAG") 
+
+Cld.df = bind_rows(BGcld.df, BXcld.df, CBcld.df,LAPcld.df, NAGcld.df)
+```
+
+### Create Plot
+## Test rhizosphere effect at each time point for LAP
+```{r}
+head(Cld.df)
+dodge = position_dodge(width=0.9)
+P1 = ggplot(Cld.df, aes(x = Planted, y = lsmean, fill = Planted)) +
+       # scale_shape_manual(values = c(21, 22)) +
+        
+        geom_bar(stat = "identity", position = dodge) + 
+        geom_errorbar(aes(ymin = lower.CL, ymax = upper.CL), 
+                        position=dodge, width = 0.4, colour = "Black") +
+        #geom_point(position = dodge, size = 3) + 
+        ylab("Activity (nmol/g/s/hr)")+
+        # #ggtitle("BG") +
+        scale_fill_manual(values = c("grey", "black")) +
+        #guides(fill=guide_legend(override.aes=list(colour= CoreColors_wBare))) +
+        
+        theme_pub()+
+  
+        theme(axis.title.x = element_blank(),
+              axis.text.x = element_text(angle = 60, hjust = 1, vjust = 1),
+              legend.position = "none") +
+  
+        
+        
+        # # #theme(axis.title.y = element_blank()) +
+        # # facet_wrap(~ Enzyme, scales = "free_y", ncol = 4)+
+        # # theme(legend.position="none") +
+        geom_text(aes(y = upper.CL + 2*(upper.CL-lsmean), label=.group), position = dodge)+
+        facet_grid(enzyme ~ TimePoint, scales = "free_y")
+P1    
+```
+
+```{r}
+svg(filename = '/home/bryan/ERA/data/figures/ms_versions/EnzymeRhizosphereEffect.svg', width = 6.5, height = 6.5)
+P1 
+dev.off()
+```
+
+
+Conclusions:
+Consistent rhizosphere effect for BG and BX.  Interestingly CB is somewhat more muted so that individual comparisons are not significant at R1 qand R3.  Nor is LAP significant at R1 or R3.
+
+
+```{r}
+sessionInfo()
+```
+
