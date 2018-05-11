@@ -1,3 +1,6 @@
+notebooks/.ipynb_checkpoints
+notebooks/buckleylab_pipeline/.ipynb_checkpoints
+notebooks/ms_versions/.ipynb_checkpoints
 .DS_Store
 ._.DS_Store
 *.pyc
